@@ -1,0 +1,50 @@
+{
+  "name": "@agentfirm402/x402-research-mcp",
+  "version": "0.4.0",
+  "description": "MCP server for the x402-research pay-per-call API (crypto signals/briefs, Base address risk, x402 invoice/settlement/approval checks). Testnet by default; your own wallet pays, capped per call and per session.",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node test-offline.mjs && node test-preview-nokey.mjs && node test-leak.mjs",
+    "test:mainnet-preview": "node test-mainnet-preview.mjs"
+  },
+  "keywords": [
+    "mcp",
+    "x402",
+    "base",
+    "usdc",
+    "crypto",
+    "model-context-protocol"
+  ],
+  "author": "KevinM222",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "@x402/core": "2.28.0",
+    "@x402/evm": "2.28.0",
+    "viem": "2.57.11",
+    "zod": "4.6.7"
+  },
+  "bin": {
+    "x402-research-mcp": "server.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "server.mjs",
+    "README.md",
+    "LICENSE"
+  ],
+  "mcpName": "io.github.kevinm222/x402-research-mcp",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KevinM222/x402-research-mcp.git",
+    "directory": "mcp"
+  },
+  "homepage": "https://x402-research-iota.vercel.app",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
