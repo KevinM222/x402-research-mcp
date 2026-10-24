@@ -1,6 +1,6 @@
 {
   "name": "@agentfirm402/x402-research-mcp",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "MCP server for the x402-research pay-per-call API (crypto signals/briefs, Base address risk, x402 invoice/settlement/approval checks). Testnet by default; your own wallet pays, capped per call and per session.",
   "scripts": {
     "start": "node server.mjs",
@@ -36,7 +36,7 @@
     "README.md",
     "LICENSE"
   ],
-  "mcpName": "io.github.kevinm222/x402-research-mcp",
+  "mcpName": "io.github.KevinM222/x402-research-mcp",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/KevinM222/x402-research-mcp.git",

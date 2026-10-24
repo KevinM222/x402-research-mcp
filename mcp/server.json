@@ -1,6 +1,6 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.kevinm222/x402-research-mcp",
+  "name": "io.github.KevinM222/x402-research-mcp",
   "title": "x402 Research",
   "description": "Pay-per-call x402 crypto research and Base address/approval risk checks. Testnet by default.",
   "repository": {
@@ -9,12 +9,12 @@
     "subfolder": "mcp"
   },
   "websiteUrl": "https://x402-research-iota.vercel.app",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@agentfirm402/x402-research-mcp",
-      "version": "0.4.0",
+      "version": "0.4.1",
       "transport": { "type": "stdio" },
       "environmentVariables": [
         { "name": "X402_NETWORK", "description": "Network: eip155:84532 (Base Sepolia, default) or eip155:8453 (Base mainnet)", "isRequired": false, "format": "string" },
