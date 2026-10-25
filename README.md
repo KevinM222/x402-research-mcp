@@ -11,6 +11,8 @@ capped per call and per session.
 > client config or this process's environment can spend that wallet's funds. The caps limit what this server signs, not
 > what a leaked key can do.
 
+> **New:** [Preflight before you sign](docs/preflight-before-you-sign.md): one paid call (`/api/x402/preflight`, 0.05 USDC) that checks a Base address's risk, approvals and OFAC status (plus an optional x402 invoice) and returns a `proceed` / `review` / `stop` verdict.
+
 ## Tools (prices per call, USDC on Base, from /llms.txt)
 | tool | route | price |
 |---|---|---|
