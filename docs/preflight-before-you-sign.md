@@ -101,19 +101,20 @@ switch (out.result.summary.verdict) {
 
 ## Calling it from the MCP server
 
-`@agentfirm402/x402-research-mcp` 0.4.1 does **not** have a single `preflight` tool yet. Until it does, an agent can
-cover most of the bundle with two tools (no OFAC screen or invoice check, and two charges instead of one):
+From `@agentfirm402/x402-research-mcp` 0.4.2, the server has a `preflight` tool (0.05 USDC) that calls
+`/api/x402/preflight` and returns the same verdict response:
 
 ```text
-risk_snapshot({ address: "0x…" })        # contract/EOA, 7702, proxy, verification, age, balances
-approval_enumerate({ address: "0x…" })   # live ERC-20 allowances, unlimited flag
-invoice_decode({ header: "<base64 PAYMENT-REQUIRED>" })   # optional, for an invoice you were sent
+preflight({ address: "0x…" })                                         # risk + approvals + OFAC, with verdict
+preflight({ address: "0x…", invoice: "<base64 PAYMENT-REQUIRED>" })   # plus an invoice check
+preflight({ address: "0x…", preview: true })                          # show the 402 terms, pay nothing
 ```
 
-Pass `preview: true` on any tool to see the decoded 402 terms without paying. With no `X402_BUYER_PRIVATE_KEY` set,
-the server is always in preview. Spending is capped per call (`X402_MAX_PRICE_USDC`, default 0.10) and per session
-(`X402_SESSION_CAP_USDC`, default 0.50). For the full bundle with a verdict, call `/api/x402/preflight` directly as
-shown above. See the [README](../README.md) for install and config.
+The tool pays only the treasury `0xa26f179e42836bc4ae0cea997fdfc9602d5b8147`, refuses an offer above 0.05 USDC,
+and respects the per-call cap (`X402_MAX_PRICE_USDC`, default 0.10; a tool's `max_price_usdc` can only lower it) and the
+session cap (`X402_SESSION_CAP_USDC`, default 0.50). With no `X402_BUYER_PRIVATE_KEY` set, the server is always in
+preview. On 0.4.1 and earlier, use `risk_snapshot` + `approval_enumerate` (+ `invoice_decode`) instead; that path has
+no OFAC screen or verdict. See the [README](../README.md) for install and config.
 
 ## Example response
 
