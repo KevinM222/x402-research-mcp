@@ -1,0 +1,4 @@
+test-*.mjs
+*.mcpb
+server.json
+.git
