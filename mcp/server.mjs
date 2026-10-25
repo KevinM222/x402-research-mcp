@@ -6,7 +6,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
-export const VERSION = "0.4.0";
+export const VERSION = "0.4.2";
 const env = process.env;
 // Network: Base Sepolia unless the user EXPLICITLY sets X402_NETWORK=eip155:8453.
 export const NETWORK = env.X402_NETWORK || "eip155:84532";
@@ -25,17 +25,19 @@ export const _resetSession = () => { spent = 0; };
 // Hardcoded payTo allowlist per tool. Signing is refused for any other recipient, even if X402_RESEARCH_URL is overridden.
 const TREASURY = "0xa26f179e42836bc4ae0cea997fdfc9602d5b8147", RESEARCH = "0xacfca8bc6567e7db35ad8c814756695dad1cfb30";
 export const PAYTO = { signal: RESEARCH, signal_batch: RESEARCH, brief: RESEARCH,
-  risk_snapshot: TREASURY, invoice_decode: TREASURY, settlement_status: TREASURY, approval_enumerate: TREASURY };
+  risk_snapshot: TREASURY, invoice_decode: TREASURY, settlement_status: TREASURY, approval_enumerate: TREASURY,
+  preflight: TREASURY };
 
 // Advertised prices (from /llms.txt, base units of USDC). An offer above the advertised price is refused.
 export const ROUTES = {
   signal:             { price: 3000,   desc: "Compact live trend signal (bullish/neutral/bearish + score) for one asset." },
   signal_batch:       { price: 20000,  desc: "Live trend signals for up to 10 assets in one call (flat price)." },
-  brief:              { price: 50000,  desc: "Technical + sentiment research brief (price, 24h/7d change, RSI14, SMA20/50, trend, Fear & Greed)." },
-  risk_snapshot:      { price: 100000, desc: "Public-data red-flag snapshot of a Base address (contract/EOA, EIP-7702, verification, proxy, age, balances, risk level). Informational only." },
+  brief:              { price: 30000,  desc: "Technical + sentiment research brief (price, 24h/7d change, RSI14, SMA20/50, trend, Fear & Greed)." },
+  risk_snapshot:      { price: 30000,  desc: "Public-data red-flag snapshot of a Base address (contract/EOA, EIP-7702, verification, proxy, age, balances, risk level). Informational only." },
   invoice_decode:     { price: 20000,  desc: "Decode and sanity-check a base64 x402 PAYMENT-REQUIRED header (scheme, network, USDC asset, payTo, amount); verdict ok/warn/fail. Never signs or pays." },
   settlement_status:  { price: 20000,  desc: "Check an x402 settlement tx on Base: success, USDC Transfer / AuthorizationUsed events, confirmations." },
-  approval_enumerate: { price: 100000, desc: "List live ERC-20 approvals for a Base address (token, spender, allowance, unlimited flag). 503 when the indexer is down (not charged)." },
+  approval_enumerate: { price: 30000,  desc: "List live ERC-20 approvals for a Base address (token, spender, allowance, unlimited flag). 503 when the indexer is down (not charged)." },
+  preflight:          { price: 50000,  desc: "One-call check before you sign, swap, approve or pay: Base address risk + live ERC-20 approvals + OFAC screen (+ optional x402 invoice check), with a proceed/review/stop verdict. Informational heuristic; \"proceed\" does not mean safe." },
 };
 
 const b64 = (h) => { try { return JSON.parse(Buffer.from(h, "base64").toString("utf8")); } catch { return null; } };
@@ -111,6 +113,8 @@ tool("invoice_decode", { header: z.string().min(8).max(16384).describe("base64 P
   (a) => ({ method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ header: a.header }) }));
 tool("settlement_status", { tx: z.string().regex(/^0x[0-9a-fA-F]{64}$/) }, (a) => `/api/x402/settlement-status?tx=${q(a.tx)}`);
 tool("approval_enumerate", { address: addr }, (a) => `/api/x402/approval-enumerate?address=${a.address}`);
+tool("preflight", { address: addr, invoice: z.string().min(8).max(16384).optional().describe("optional x402 PAYMENT-REQUIRED header (base64 or JSON) you were asked to pay") },
+  (a) => `/api/x402/preflight?address=${a.address}${a.invoice ? `&invoice=${q(a.invoice)}` : ""}`);
 server.tool("session_status", "Free. Shows network, preview mode, USDC spent this session, cap and per-call max.", {}, async () => out({ status: 200, ...session() }));
 
 if (import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.endsWith("x402-research-mcp")) await server.connect(new StdioServerTransport());

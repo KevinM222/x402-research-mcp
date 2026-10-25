@@ -1,0 +1,130 @@
+{
+  "manifest_version": "0.3",
+  "name": "x402-research-mcp",
+  "display_name": "x402 Research",
+  "version": "0.4.2",
+  "description": "Pay-per-call x402 crypto research and Base address/approval risk checks. Testnet and preview by default; your own capped wallet pays.",
+  "long_description": "MCP server for the x402-research API: crypto trend signals and briefs, Base address risk snapshots, ERC-20 approval enumeration, and x402 invoice/settlement checks. Preview mode (no key) returns the 402 terms and never signs. With a key, payments come from your dedicated low-balance wallet, capped per call (default 0.10 USDC) and per session (default 0.50 USDC), with a hardcoded payTo allowlist.",
+  "author": {
+    "name": "KevinM222",
+    "url": "https://github.com/KevinM222"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KevinM222/x402-research-mcp.git"
+  },
+  "homepage": "https://x402-research-iota.vercel.app",
+  "documentation": "https://github.com/KevinM222/x402-research-mcp#readme",
+  "support": "https://github.com/KevinM222/x402-research-mcp/issues",
+  "server": {
+    "type": "node",
+    "entry_point": "server.mjs",
+    "mcp_config": {
+      "command": "node",
+      "args": [
+        "${__dirname}/server.mjs"
+      ],
+      "env": {
+        "X402_NETWORK": "${user_config.network}",
+        "X402_BUYER_PRIVATE_KEY": "${user_config.buyer_private_key}",
+        "X402_PREVIEW": "${user_config.preview}",
+        "X402_MAX_PRICE_USDC": "${user_config.max_price_usdc}",
+        "X402_SESSION_CAP_USDC": "${user_config.session_cap_usdc}"
+      }
+    }
+  },
+  "tools": [
+    {
+      "name": "signal",
+      "description": "Compact live trend signal for one asset (0.003 USDC)."
+    },
+    {
+      "name": "signal_batch",
+      "description": "Live trend signals for up to 10 assets (0.02 USDC flat)."
+    },
+    {
+      "name": "brief",
+      "description": "Technical + sentiment research brief for one asset (0.03 USDC)."
+    },
+    {
+      "name": "risk_snapshot",
+      "description": "Public-data red-flag snapshot of a Base address (0.03 USDC)."
+    },
+    {
+      "name": "invoice_decode",
+      "description": "Decode and sanity-check an x402 PAYMENT-REQUIRED header; never signs."
+    },
+    {
+      "name": "settlement_status",
+      "description": "Check an x402 settlement tx on Base."
+    },
+    {
+      "name": "approval_enumerate",
+      "description": "List live ERC-20 approvals for a Base address (0.03 USDC)."
+    },
+    {
+      "name": "preflight",
+      "description": "One-call pre-sign check of a Base address (risk, approvals, OFAC, optional invoice) with a verdict (0.05 USDC)."
+    },
+    {
+      "name": "session_status",
+      "description": "Local spend/cap status (free)."
+    }
+  ],
+  "keywords": [
+    "mcp",
+    "x402",
+    "base",
+    "usdc",
+    "crypto",
+    "model-context-protocol"
+  ],
+  "license": "MIT",
+  "compatibility": {
+    "platforms": [
+      "darwin",
+      "win32",
+      "linux"
+    ],
+    "runtimes": {
+      "node": ">=20.0.0"
+    }
+  },
+  "user_config": {
+    "network": {
+      "type": "string",
+      "title": "Network",
+      "description": "eip155:84532 (Base Sepolia, default) or eip155:8453 (Base mainnet)",
+      "default": "eip155:84532",
+      "required": false
+    },
+    "preview": {
+      "type": "string",
+      "title": "Preview mode",
+      "description": "\"1\" = never sign, only show 402 terms. Clear it to allow payments.",
+      "default": "1",
+      "required": false
+    },
+    "buyer_private_key": {
+      "type": "string",
+      "title": "Buyer wallet private key (optional)",
+      "description": "Dedicated LOW-BALANCE hot wallet only, never your main wallet. Leave empty for preview.",
+      "sensitive": true,
+      "required": false
+    },
+    "max_price_usdc": {
+      "type": "string",
+      "title": "Max price per call (USDC)",
+      "default": "0.10",
+      "required": false,
+      "description": "Refuse any single call priced above this (default 0.10). Empty or 0 refuses all paid calls."
+    },
+    "session_cap_usdc": {
+      "type": "string",
+      "title": "Session spend cap (USDC)",
+      "default": "0.50",
+      "required": false,
+      "description": "Total spend cap per server process (default 0.50)."
+    }
+  }
+}

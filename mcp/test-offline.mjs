@@ -29,11 +29,16 @@ await t("refuse wrong network (mainnet offer on Sepolia default)", async () => {
 await t("refuse price above advertised", async () => { offer.amount = "3001"; const r = await m.callPaid("signal", "/s"); assert.match(r.refused, /advertised/); assert.equal(lastSig, null); });
 await t("refuse over 0.10 per call (default X402_MAX_PRICE_USDC)", async () => { const orig = m.ROUTES.risk_snapshot.price; m.ROUTES.risk_snapshot.price = 200000; // isolate the per-call check from the advertised-price check
   try { offer.payTo = TREASURY; offer.amount = "110000"; const r = await m.callPaid("risk_snapshot", "/r"); assert.match(r.refused, /per-call max 0.1 USDC/); assert.equal(lastSig, null); } finally { m.ROUTES.risk_snapshot.price = orig; } });
-await t("max_price_usdc arg can lower but not raise the per-call max", async () => { offer.payTo = TREASURY; offer.amount = "100000"; let r = await m.callPaid("risk_snapshot", "/r", { max_price_usdc: 0.05 }); assert.match(r.refused, /per-call max/); assert.equal(lastSig, null);
-  r = await m.callPaid("risk_snapshot", "/r", { max_price_usdc: 5 }); assert.ok(r.paid, "arg cannot raise the 0.10 default; 0.10 itself is allowed"); });
-await t("refuse over 0.50 session cap", async () => { offer.payTo = TREASURY; offer.amount = "100000";
-  for (let i = 0; i < 5; i++) assert.ok((await m.callPaid("approval_enumerate", "/a")).paid);
-  lastSig = null; const r = await m.callPaid("approval_enumerate", "/a"); assert.match(r.refused, /session cap/); assert.equal(lastSig, null); assert.equal(m.session().spentUSDC, 0.5); });
+await t("max_price_usdc arg can lower but not raise the per-call max", async () => { offer.payTo = TREASURY; offer.amount = "50000"; let r = await m.callPaid("preflight", "/p", { max_price_usdc: 0.04 }); assert.match(r.refused, /per-call max/); assert.equal(lastSig, null);
+  r = await m.callPaid("preflight", "/p", { max_price_usdc: 5 }); assert.ok(r.paid, "arg cannot raise the default; 0.05 is under 0.10"); });
+await t("preflight: advertised 0.05, treasury only, refuses 0.050001", async () => { assert.equal(m.ROUTES.preflight.price, 50000); assert.equal(m.PAYTO.preflight, TREASURY);
+  offer.payTo = TREASURY; offer.amount = "50001"; const r = await m.callPaid("preflight", "/p"); assert.match(r.refused, /advertised/); assert.equal(lastSig, null);
+  offer.amount = "50000"; offer.payTo = RESEARCH; assert.equal((await m.callPaid("preflight", "/p")).refused, "payToNotAllowlisted"); });
+await t("preflight respects a lower X402_MAX_PRICE_USDC-style cap via arg", async () => { offer.payTo = TREASURY; offer.amount = "50000"; const r = await m.callPaid("preflight", "/p", { max_price_usdc: 0.049 }); assert.match(r.refused, /per-call max/); assert.equal(lastSig, null); });
+await t("advertised prices: brief/risk_snapshot/approval_enumerate 0.03", async () => { for (const k of ["brief", "risk_snapshot", "approval_enumerate"]) assert.equal(m.ROUTES[k].price, 30000); });
+await t("refuse over 0.50 session cap", async () => { offer.payTo = TREASURY; offer.amount = "50000";
+  for (let i = 0; i < 10; i++) assert.ok((await m.callPaid("preflight", "/p")).paid);
+  lastSig = null; const r = await m.callPaid("preflight", "/p"); assert.match(r.refused, /session cap/); assert.equal(lastSig, null); assert.equal(m.session().spentUSDC, 0.5); });
 await t("payTo allowlist: research tools refuse treasury and vice versa", async () => {
   offer.payTo = TREASURY; assert.equal((await m.callPaid("signal", "/s")).refused, "payToNotAllowlisted");
   offer = { ...base(), amount: "20000", payTo: RESEARCH }; assert.equal((await m.callPaid("invoice_decode", "/i")).refused, "payToNotAllowlisted");
