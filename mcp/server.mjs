@@ -6,7 +6,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
-export const VERSION = "0.4.2";
+export const VERSION = "0.5.0";
 const env = process.env;
 // Network: Base Sepolia unless the user EXPLICITLY sets X402_NETWORK=eip155:8453.
 export const NETWORK = env.X402_NETWORK || "eip155:84532";
@@ -22,9 +22,10 @@ let spent = 0; // base units committed this session (counted once a signed payme
 export const session = () => ({ network: NETWORK, mainnet: MAINNET, preview: PREVIEW, spentUSDC: spent / 1e6, capUSDC: SESSION_CAP / 1e6, remainingUSDC: (SESSION_CAP - spent) / 1e6, maxPriceUSDC: MAX_PRICE / 1e6 });
 export const _resetSession = () => { spent = 0; };
 
-// Hardcoded payTo allowlist per tool. Signing is refused for any other recipient, even if X402_RESEARCH_URL is overridden.
-const TREASURY = "0xa26f179e42836bc4ae0cea997fdfc9602d5b8147", RESEARCH = "0xacfca8bc6567e7db35ad8c814756695dad1cfb30";
-export const PAYTO = { signal: RESEARCH, signal_batch: RESEARCH, brief: RESEARCH,
+// Hardcoded payTo allowlist per tool: every paid tool pays ONLY the Agent Firm treasury. Signing is refused for any
+// other recipient, even if X402_RESEARCH_URL is overridden.
+const TREASURY = "0xa26f179e42836bc4ae0cea997fdfc9602d5b8147";
+export const PAYTO = { signal: TREASURY, signal_batch: TREASURY, brief: TREASURY,
   risk_snapshot: TREASURY, invoice_decode: TREASURY, settlement_status: TREASURY, approval_enumerate: TREASURY,
   preflight: TREASURY };
 

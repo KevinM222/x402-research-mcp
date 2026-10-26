@@ -185,7 +185,7 @@ illustrative data**, with the same shape as the paid response (the paid one has 
     "riskLevel": "low",
     "approvalsStatus": "ok",
     "invoiceVerdict": null,
-    "coverageNote": "Public-data heuristics only. Risk: Base RPC + Sourcify/Blockscout. ERC-20 allowances only: Permit2 sub-allowances and NFT operator approvals (setApprovalForAll) are not covered. \"none\" does not mean the wallet is safe. An empty flag list or approvals status \"none\" never means the address or wallet is safe. Not financial advice, not a security audit."
+    "coverageNote": "Public-data heuristics only. Risk: Base RPC (primary-rpc/fallback-rpc) + contract-verifier. ERC-20 allowances only: Permit2 sub-allowances and NFT operator approvals (setApprovalForAll) are not covered. \"none\" does not mean the wallet is safe. An empty flag list or approvals status \"none\" never means the address or wallet is safe. Not financial advice, not a security audit."
   },
   "disclaimer": "Informational public-data heuristics only. Not financial advice, not a security audit."
 }
@@ -205,7 +205,7 @@ Why `proceed` isn't "safe":
 - Approvals cover **ERC-20 allowances only**. Permit2 sub-allowances and NFT operator approvals (`setApprovalForAll`)
   aren't checked, so `approvals.status: "none"` doesn't mean the wallet is clean.
 - The sanctions screen is an **exact-address** OFAC SDN match. `clear` isn't a compliance determination.
-- Risk signals are public-data heuristics (Base RPC, Sourcify/Blockscout). A new malicious contract can look clean.
+- Risk signals are public-data heuristics (Base RPC, contract-verifier, indexer). A new malicious contract can look clean.
 - Results are a point-in-time read; state can change after the call.
 
 Always read `summary.flags[]` (`source`, `level`, `code`, `detail`) and `summary.coverageNote`, not just the verdict.

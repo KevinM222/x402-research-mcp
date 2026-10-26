@@ -4,8 +4,8 @@ import http from "node:http";
 import assert from "node:assert";
 import { readFileSync } from "node:fs";
 import { generatePrivateKey } from "viem/accounts";
-const USDC_SEP = "0x036CbD53842c5426634e7929541eC2318f3dCF7e", RESEARCH = "0xacfca8bc6567e7db35ad8c814756695dad1cfb30", TREASURY = "0xa26f179e42836bc4ae0cea997fdfc9602d5b8147";
-const base = () => ({ scheme: "exact", network: "eip155:84532", amount: "3000", asset: USDC_SEP, payTo: RESEARCH, maxTimeoutSeconds: 60, extra: { name: "USDC", version: "2" } });
+const USDC_SEP = "0x036CbD53842c5426634e7929541eC2318f3dCF7e", OLD_RESEARCH = "0xacfca8bc6567e7db35ad8c814756695dad1cfb30", TREASURY = "0xa26f179e42836bc4ae0cea997fdfc9602d5b8147";
+const base = () => ({ scheme: "exact", network: "eip155:84532", amount: "3000", asset: USDC_SEP, payTo: TREASURY, maxTimeoutSeconds: 60, extra: { name: "USDC", version: "2" } });
 let offer = base(), lastSig = null;
 const srv = http.createServer((q, r) => {
   lastSig = q.headers["payment-signature"] || null;
@@ -33,18 +33,25 @@ await t("max_price_usdc arg can lower but not raise the per-call max", async () 
   r = await m.callPaid("preflight", "/p", { max_price_usdc: 5 }); assert.ok(r.paid, "arg cannot raise the default; 0.05 is under 0.10"); });
 await t("preflight: advertised 0.05, treasury only, refuses 0.050001", async () => { assert.equal(m.ROUTES.preflight.price, 50000); assert.equal(m.PAYTO.preflight, TREASURY);
   offer.payTo = TREASURY; offer.amount = "50001"; const r = await m.callPaid("preflight", "/p"); assert.match(r.refused, /advertised/); assert.equal(lastSig, null);
-  offer.amount = "50000"; offer.payTo = RESEARCH; assert.equal((await m.callPaid("preflight", "/p")).refused, "payToNotAllowlisted"); });
+  offer.amount = "50000"; offer.payTo = OLD_RESEARCH; assert.equal((await m.callPaid("preflight", "/p")).refused, "payToNotAllowlisted"); });
 await t("preflight respects a lower X402_MAX_PRICE_USDC-style cap via arg", async () => { offer.payTo = TREASURY; offer.amount = "50000"; const r = await m.callPaid("preflight", "/p", { max_price_usdc: 0.049 }); assert.match(r.refused, /per-call max/); assert.equal(lastSig, null); });
 await t("advertised prices: brief/risk_snapshot/approval_enumerate 0.03", async () => { for (const k of ["brief", "risk_snapshot", "approval_enumerate"]) assert.equal(m.ROUTES[k].price, 30000); });
 await t("refuse over 0.50 session cap", async () => { offer.payTo = TREASURY; offer.amount = "50000";
   for (let i = 0; i < 10; i++) assert.ok((await m.callPaid("preflight", "/p")).paid);
   lastSig = null; const r = await m.callPaid("preflight", "/p"); assert.match(r.refused, /session cap/); assert.equal(lastSig, null); assert.equal(m.session().spentUSDC, 0.5); });
-await t("payTo allowlist: research tools refuse treasury and vice versa", async () => {
-  offer.payTo = TREASURY; assert.equal((await m.callPaid("signal", "/s")).refused, "payToNotAllowlisted");
-  offer = { ...base(), amount: "20000", payTo: RESEARCH }; assert.equal((await m.callPaid("invoice_decode", "/i")).refused, "payToNotAllowlisted");
-  offer = { ...base(), payTo: "0x000000000000000000000000000000000000dEaD" }; assert.equal((await m.callPaid("signal", "/s")).refused, "payToNotAllowlisted");
-  assert.equal(lastSig, null);
-  for (const [k, v] of Object.entries(m.PAYTO)) assert.equal(v, ["signal", "signal_batch", "brief"].includes(k) ? RESEARCH : TREASURY, k); });
+await t("payTo allowlist: every tool accepts ONLY the treasury; old research address and others refused", async () => {
+  const TOOLS = { signal: 3000, signal_batch: 20000, brief: 30000, risk_snapshot: 30000, invoice_decode: 20000, settlement_status: 20000, approval_enumerate: 30000, preflight: 50000 };
+  assert.deepEqual(Object.keys(m.PAYTO).sort(), Object.keys(TOOLS).sort());
+  for (const [k, v] of Object.entries(m.PAYTO)) assert.equal(v, TREASURY, k);
+  for (const [tool, amt] of Object.entries(TOOLS)) {
+    for (const bad of [OLD_RESEARCH, "0x000000000000000000000000000000000000dEaD"]) {
+      m._resetSession(); lastSig = null; offer = { ...base(), amount: String(amt), payTo: bad };
+      const r = await m.callPaid(tool, "/x"); assert.equal(r.refused, "payToNotAllowlisted", `${tool} ${bad}`); assert.equal(lastSig, null, `${tool} signed for ${bad}`);
+    }
+    m._resetSession(); offer = { ...base(), amount: String(amt), payTo: TREASURY.toUpperCase().replace("0X", "0x") };
+    assert.ok((await m.callPaid(tool, "/x")).paid, `${tool} should pay the treasury`);
+  }
+  m._resetSession(); offer = base(); });
 await t("no payment_signature passthrough in server", async () => { assert.ok(!/payment_signature/.test(readFileSync(new URL("./server.mjs", import.meta.url), "utf8"))); });
 srv.close();
 console.log(`offline unit tests PASS (${n})`);

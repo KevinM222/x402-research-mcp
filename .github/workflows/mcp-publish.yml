@@ -1,4 +1,6 @@
-# Publishes mcp/ to npm with provenance. Runs on manual dispatch or a pushed mcp-v* tag only.
+# Publishes mcp/ to npm via OIDC trusted publishing (no NPM_TOKEN) with provenance.
+# Runs on manual dispatch or a pushed mcp-v* tag only. The npm trusted publisher for
+# @agentfirm402/x402-research-mcp must name: KevinM222 / x402-research-mcp / mcp-publish.yml.
 name: mcp-publish
 on:
   push:
@@ -10,11 +12,11 @@ on:
         required: true
 permissions:
   contents: read
-  id-token: write   # required for npm --provenance
+  id-token: write   # required for npm OIDC trusted publishing + provenance
 jobs:
   publish:
     if: github.event.inputs.confirm == 'publish' || startsWith(github.ref, 'refs/tags/mcp-v')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest   # trusted publishing requires GitHub-hosted runners
     defaults:
       run:
         working-directory: mcp
@@ -22,10 +24,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24          # trusted publishing needs Node >= 22.14
           registry-url: https://registry.npmjs.org
+      - run: npm install -g npm@^11.5.1   # trusted publishing needs npm CLI >= 11.5.1
+      - run: npm --version
       - run: npm ci
       - run: npm test
+      # No NODE_AUTH_TOKEN: the npm CLI exchanges the GitHub OIDC token for a short-lived publish token.
       - run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

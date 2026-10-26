@@ -34,7 +34,7 @@ Every paid tool also accepts `preview: true` (return the 402 terms, pay nothing)
 - **Per-call max** `X402_MAX_PRICE_USDC` (default 0.10). A tool's `max_price_usdc` can only lower it.
 - **Session cap** `X402_SESSION_CAP_USDC` (default 0.50). A call that would push spend over the cap is refused before signing. Spend is counted when a signed payment is sent. It resets when the server process restarts.
 - Offers are refused if they're above the advertised price, on another network, not the `exact` scheme, or in a non-canonical USDC asset.
-- **payTo allowlist (hardcoded):** signal, signal_batch and brief pay only `0xacfca8bc6567e7db35ad8c814756695dad1cfb30`. risk_snapshot, invoice_decode, settlement_status, approval_enumerate and preflight pay only `0xa26f179e42836bc4ae0cea997fdfc9602d5b8147`. Any other recipient is refused, even if `X402_RESEARCH_URL` points elsewhere.
+- **payTo allowlist (hardcoded):** every paid tool (signal, signal_batch, brief, risk_snapshot, invoice_decode, settlement_status, approval_enumerate, preflight) pays only the Agent Firm treasury `0xa26f179e42836bc4ae0cea997fdfc9602d5b8147`. Since 0.5.0; 0.4.x expected a different address for signal, signal_batch and brief and refuses the treasury there, so upgrade. Any other recipient is refused, even if `X402_RESEARCH_URL` points elsewhere.
 - The server never logs its environment or the key, and error messages don't echo config.
 - There is no way to pass in a pre-signed payment: every payment is signed by this server under the caps above.
 - Use a dedicated hot wallet holding only a few USDC. The key stays in the local process and is never logged or returned.

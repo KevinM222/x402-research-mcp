@@ -4,18 +4,18 @@
 import http from "node:http"; import { spawn } from "node:child_process"; import assert from "node:assert";
 import { generatePrivateKey } from "viem/accounts";
 const TX = "0x" + "ab".repeat(32);
-const RESEARCH = "0xacfca8bc6567e7db35ad8c814756695dad1cfb30", TREASURY = "0xa26f179e42836bc4ae0cea997fdfc9602d5b8147";
+const OLD_RESEARCH = "0xacfca8bc6567e7db35ad8c814756695dad1cfb30", TREASURY = "0xa26f179e42836bc4ae0cea997fdfc9602d5b8147";
 const PRICE = { "/api/signal": 3000, "/api/signal-batch": 20000, "/api/brief": 50000, "/api/firm": 100000, "/api/x402/invoice": 20000, "/api/x402/settlement": 20000, "/api/x402/approval": 100000 };
 const srv = http.createServer((q, r) => {
   if (q.headers["payment-signature"]) { r.writeHead(200, { "content-type": "application/json", "payment-response": Buffer.from('{"success":true}').toString("base64") }); return r.end('{"ok":1}'); }
   const p = Object.keys(PRICE).find((k) => q.url.startsWith(k));
-  const payTo = /signal|brief/.test(q.url) ? RESEARCH : TREASURY;
+  const payTo = TREASURY; // 0.5.0: every tool pays the treasury
   r.writeHead(402, { "payment-required": Buffer.from(JSON.stringify({ x402Version: 2, accepts: [{ scheme: "exact", network: "eip155:84532", amount: String(PRICE[p]), asset: "0x036CbD53842c5426634e7929541eC2318f3dCF7e", payTo, maxTimeoutSeconds: 60, extra: { name: "USDC", version: "2" } }] })).toString("base64") }); r.end();
 }).listen(0);
 await new Promise((ok) => srv.on("listening", ok));
 const URL_OK = `http://127.0.0.1:${srv.address().port}`;
-const calls = [["signal", { asset: "eth" }], ["signal_batch", { assets: ["btc", "eth"] }], ["brief", { asset: "btc" }], ["risk_snapshot", { address: RESEARCH }],
-  ["invoice_decode", { header: "eyJ4NDAyVmVyc2lvbiI6Mn0=" }], ["settlement_status", { tx: TX }], ["approval_enumerate", { address: RESEARCH }],
+const calls = [["signal", { asset: "eth" }], ["signal_batch", { assets: ["btc", "eth"] }], ["brief", { asset: "btc" }], ["risk_snapshot", { address: OLD_RESEARCH }],
+  ["invoice_decode", { header: "eyJ4NDAyVmVyc2lvbiI6Mn0=" }], ["settlement_status", { tx: TX }], ["approval_enumerate", { address: OLD_RESEARCH }],
   ["signal", { asset: "eth", preview: true }], ["brief", { asset: "btc", max_price_usdc: 0.001 }], ["risk_snapshot", { address: "bad" }], ["session_status", {}]];
 let all = "";
 const done = (o) => calls.every((_, i) => o.includes(`"id":${i + 2}}`));

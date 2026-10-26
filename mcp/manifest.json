@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "x402-research-mcp",
   "display_name": "x402 Research",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "Pay-per-call x402 crypto research and Base address/approval risk checks. Testnet and preview by default; your own capped wallet pays.",
   "long_description": "MCP server for the x402-research API: crypto trend signals and briefs, Base address risk snapshots, ERC-20 approval enumeration, and x402 invoice/settlement checks. Preview mode (no key) returns the 402 terms and never signs. With a key, payments come from your dedicated low-balance wallet, capped per call (default 0.10 USDC) and per session (default 0.50 USDC), with a hardcoded payTo allowlist.",
   "author": {

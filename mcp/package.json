@@ -1,6 +1,6 @@
 {
   "name": "@agentfirm402/x402-research-mcp",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "MCP server for the x402-research pay-per-call API (crypto signals/briefs, Base address risk, x402 invoice/settlement/approval checks). Testnet by default; your own wallet pays, capped per call and per session.",
   "scripts": {
     "start": "node server.mjs",
