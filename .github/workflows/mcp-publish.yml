@@ -32,3 +32,7 @@ jobs:
       - run: npm test
       # No NODE_AUTH_TOKEN: the npm CLI exchanges the GitHub OIDC token for a short-lived publish token.
       - run: npm publish --provenance --access public
+        # ONE-TIME EXCEPTION (Risk-approved, 0.5.0 only): token publish because npm OIDC is blocked
+        # until the account has passkey 2FA. Remove NODE_AUTH_TOKEN and switch to OIDC trusted publishing by Nov 20, 2026.
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
