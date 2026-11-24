@@ -1,5 +1,7 @@
 # x402-research-mcp
 
+[![KevinM222/x402-research-mcp MCP server](https://glama.ai/mcp/servers/KevinM222/x402-research-mcp/badges/score.svg)](https://glama.ai/mcp/servers/KevinM222/x402-research-mcp)
+
 MCP (stdio) server for the [x402-research](https://x402-research-iota.vercel.app) pay-per-call API.
 **Testnet (Base Sepolia) by default. Base mainnet only if you explicitly set `X402_NETWORK=eip155:8453`.**
 The publisher never holds keys: payments come from *your* wallet key, supplied by you via env var, and are
